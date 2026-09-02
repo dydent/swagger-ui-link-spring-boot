@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Boot 3 / MVC
+            profile: mvc
+            boot: 3.5.16
+            springdoc: 2.9.0
+          - name: Boot 3 / WebFlux
+            profile: webflux
+            boot: 3.5.16
+            springdoc: 2.9.0
+          - name: Boot 4 / MVC
+            profile: mvc
+            boot: 4.1.1
+            springdoc: 3.1.0
+          - name: Boot 4 / WebFlux
+            profile: webflux
+            boot: 4.1.1
+            springdoc: 3.1.0
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - run: >-
+          mvn --batch-mode
+          -P${{ matrix.profile }}
+          -Dspring-boot.version=${{ matrix.boot }}
+          -Dspringdoc.version=${{ matrix.springdoc }}
+          clean verify
