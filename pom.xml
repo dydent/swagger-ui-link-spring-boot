@@ -6,7 +6,7 @@
 
     <groupId>io.github.dydent</groupId>
     <artifactId>swagger-ui-link-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>Swagger UI Link Spring Boot Starter</name>
     <description>Prints the clickable Swagger UI URL when a Spring Boot application starts.</description>
     <url>https://github.com/dydent/swagger-ui-link-spring-boot</url>

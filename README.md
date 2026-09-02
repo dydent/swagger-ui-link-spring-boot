@@ -16,7 +16,7 @@ This is inspiration from that developer experience, not a claim that Express its
 
 ## Status
 
-The first Maven Central release has not been published yet. The code currently targets:
+Version `0.1.0` targets:
 
 - Java 17 or newer
 - Spring Boot 3.5.x with springdoc-openapi 2.9.x
@@ -28,7 +28,7 @@ All four framework combinations are exercised by integration tests that start a 
 
 ## Install
 
-After `0.1.0` is available from Maven Central, add one dependency alongside the Swagger UI provider already used by the application.
+Add one dependency alongside the Swagger UI provider already used by the application.
 
 Maven:
 
@@ -45,8 +45,6 @@ Gradle:
 ```groovy
 implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:0.1.0'
 ```
-
-Until that release exists, clone this repository, run `mvn install`, and use version `0.1.0-SNAPSHOT` from your local Maven repository.
 
 ## Enable
 

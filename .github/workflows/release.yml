@@ -26,7 +26,7 @@ jobs:
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: GPG_PASSPHRASE
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Check tag matches project version
         run: |
           version="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
