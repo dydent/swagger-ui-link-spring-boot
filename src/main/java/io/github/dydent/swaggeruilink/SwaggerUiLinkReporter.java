@@ -31,6 +31,12 @@ final class SwaggerUiLinkReporter {
         if (event.getApplicationContext() != applicationContext) {
             return;
         }
+
+        reportSwaggerUi();
+        reportApiDocs();
+    }
+
+    private void reportSwaggerUi() {
         if (!StringUtils.hasText(properties.getUrl())
                 && !environment.getProperty("springdoc.swagger-ui.enabled", Boolean.class, true)) {
             return;
@@ -41,6 +47,23 @@ final class SwaggerUiLinkReporter {
         }
         catch (IllegalArgumentException exception) {
             logger.warn("Could not resolve Swagger UI URL: {}", exception.getMessage());
+        }
+    }
+
+    private void reportApiDocs() {
+        boolean explicitUrl = StringUtils.hasText(properties.getApiDocsUrl());
+        if (!properties.isApiDocs() && !explicitUrl) {
+            return;
+        }
+        if (!explicitUrl && !environment.getProperty("springdoc.api-docs.enabled", Boolean.class, true)) {
+            return;
+        }
+
+        try {
+            logger.info("OpenAPI JSON: {}", resolver.resolveApiDocs(environment, properties));
+        }
+        catch (IllegalArgumentException exception) {
+            logger.warn("Could not resolve OpenAPI JSON URL: {}", exception.getMessage());
         }
     }
 }

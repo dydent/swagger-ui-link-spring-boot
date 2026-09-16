@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "swagger-ui-link.enabled=true",
+                "swagger-ui-link.api-docs=true",
                 "spring.main.banner-mode=off",
                 "spring.main.web-application-type=reactive"
         })

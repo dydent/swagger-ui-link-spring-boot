@@ -44,6 +44,83 @@ class SwaggerUiLinkAutoConfigurationTests {
     }
 
     @Test
+    void doesNotReportApiDocsByDefault(CapturedOutput output) {
+        contextRunner
+                .withPropertyValues("swagger-ui-link.enabled=true", "local.server.port=8080")
+                .run(context -> {
+                    context.publishEvent(readyEvent(context.getSourceApplicationContext()));
+
+                    assertThat(output)
+                            .contains("Swagger UI: http://localhost:8080/swagger-ui.html")
+                            .doesNotContain("OpenAPI JSON:");
+                });
+    }
+
+    @Test
+    void reportsApiDocsWhenEnabled(CapturedOutput output) {
+        contextRunner
+                .withPropertyValues(
+                        "swagger-ui-link.enabled=true",
+                        "swagger-ui-link.api-docs=true",
+                        "local.server.port=8080")
+                .run(context -> {
+                    context.publishEvent(readyEvent(context.getSourceApplicationContext()));
+
+                    assertThat(output)
+                            .contains("Swagger UI: http://localhost:8080/swagger-ui.html")
+                            .contains("OpenAPI JSON: http://localhost:8080/v3/api-docs");
+                });
+    }
+
+    @Test
+    void staysSilentWhenInferredApiDocsAreDisabled(CapturedOutput output) {
+        contextRunner
+                .withPropertyValues(
+                        "swagger-ui-link.enabled=true",
+                        "swagger-ui-link.api-docs=true",
+                        "springdoc.api-docs.enabled=false",
+                        "local.server.port=8080")
+                .run(context -> {
+                    context.publishEvent(readyEvent(context.getSourceApplicationContext()));
+
+                    assertThat(output).doesNotContain("OpenAPI JSON:");
+                });
+    }
+
+    @Test
+    void explicitApiDocsUrlImpliesOptIn(CapturedOutput output) {
+        contextRunner
+                .withPropertyValues(
+                        "swagger-ui-link.enabled=true",
+                        "swagger-ui-link.api-docs-url=https://docs.example.test/openapi.json",
+                        "springdoc.api-docs.enabled=false",
+                        "local.server.port=8080")
+                .run(context -> {
+                    context.publishEvent(readyEvent(context.getSourceApplicationContext()));
+
+                    assertThat(output)
+                            .contains("OpenAPI JSON: https://docs.example.test/openapi.json");
+                });
+    }
+
+    @Test
+    void invalidApiDocsUrlDoesNotSuppressSwaggerUi(CapturedOutput output) {
+        contextRunner
+                .withPropertyValues(
+                        "swagger-ui-link.enabled=true",
+                        "swagger-ui-link.api-docs-url=file:///tmp/openapi.json",
+                        "local.server.port=8080")
+                .run(context -> {
+                    context.publishEvent(readyEvent(context.getSourceApplicationContext()));
+
+                    assertThat(output)
+                            .contains("Swagger UI: http://localhost:8080/swagger-ui.html")
+                            .contains("Could not resolve OpenAPI JSON URL")
+                            .doesNotContain("OpenAPI JSON: file:");
+                });
+    }
+
+    @Test
     void staysSilentWhenSpringdocUiIsDisabled(CapturedOutput output) {
         contextRunner
                 .withPropertyValues(

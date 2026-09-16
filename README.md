@@ -16,7 +16,7 @@ This is inspiration from that developer experience, not a claim that Express its
 
 ## Status
 
-Version `0.1.0` targets:
+Version `0.2.0` targets:
 
 - Java 17 or newer
 - Spring Boot 3.5.x with springdoc-openapi 2.9.x
@@ -36,14 +36,14 @@ Maven:
 <dependency>
     <groupId>io.github.dydent</groupId>
     <artifactId>swagger-ui-link-spring-boot-starter</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:0.1.0'
+implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:0.2.0'
 ```
 
 ## Enable
@@ -62,6 +62,19 @@ Start the application. After Spring Boot publishes `ApplicationReadyEvent`, the 
 Swagger UI: http://localhost:8080/swagger-ui.html
 ```
 
+To also print the raw OpenAPI JSON endpoint, enable the optional API docs link:
+
+```yaml
+swagger-ui-link:
+  enabled: true
+  api-docs: true
+```
+
+```text
+Swagger UI: http://localhost:8080/swagger-ui.html
+OpenAPI JSON: http://localhost:8080/v3/api-docs
+```
+
 For a profile-scoped dependency, Maven users can also put the dependency in a Maven `local` profile. The Spring property remains the final switch and avoids surprises if that Maven profile is accidentally used elsewhere.
 
 ## Configuration
@@ -70,6 +83,8 @@ For a profile-scoped dependency, Maven users can also put the dependency in a Ma
 | --- | --- | --- |
 | `swagger-ui-link.enabled` | `false` | Enables the startup message. |
 | `swagger-ui-link.url` | empty | Complete HTTP(S) URL to print instead of inferring a local URL. |
+| `swagger-ui-link.api-docs` | `false` | Also prints the inferred OpenAPI JSON URL. |
+| `swagger-ui-link.api-docs-url` | empty | Complete HTTP(S) OpenAPI JSON URL to print; also enables this link. |
 
 An explicit URL is useful for a reverse proxy, Docker port mapping, a non-springdoc provider, or any setup where the process-local address is not the address a developer should open:
 
@@ -80,6 +95,14 @@ swagger-ui-link:
 ```
 
 Only absolute `http` or `https` URLs are accepted, and credentials in the URL are rejected so they cannot be leaked into logs.
+
+The OpenAPI JSON link uses `springdoc.api-docs.path` (default `/v3/api-docs`) and stays silent when `springdoc.api-docs.enabled=false`. An explicit `api-docs-url` wins over inference and still prints when springdoc's endpoint is disabled, which supports proxies and other OpenAPI providers:
+
+```yaml
+swagger-ui-link:
+  enabled: true
+  api-docs-url: https://api.local.example/openapi.json
+```
 
 ### Inferred springdoc URL
 
@@ -93,6 +116,8 @@ Without an explicit override, the starter reads Spring Boot's actual bound port 
 - `springdoc.swagger-ui.path`
 - `springdoc.swagger-ui.use-root-path`
 - `springdoc.swagger-ui.enabled`
+- `springdoc.api-docs.path`
+- `springdoc.api-docs.enabled`
 
 This works with a fixed port and with `server.port=0`. If `springdoc.swagger-ui.enabled=false`, inferred reporting stays silent. An explicit `swagger-ui-link.url` still prints because another provider may own that URL.
 
@@ -102,7 +127,7 @@ When springdoc is configured with `springdoc.use-management-port=true`, the star
 
 - `management.server.base-path`
 - `management.endpoints.web.base-path` (default `/actuator`)
-- `/swagger-ui`
+- `/swagger-ui` and `/openapi`
 
 For example:
 
@@ -113,18 +138,19 @@ management:
   endpoints:
     web:
       exposure:
-        include: swagger-ui
+        include: swagger-ui,openapi
 springdoc:
   use-management-port: true
 swagger-ui-link:
   enabled: true
+  api-docs: true
 ```
 
-prints `http://localhost:9090/actuator/swagger-ui`. The endpoint still has to be exposed and allowed by the application's security rules.
+prints `http://localhost:9090/actuator/swagger-ui` and `http://localhost:9090/actuator/openapi`. The endpoints still have to be exposed and allowed by the application's security rules. Springdoc path properties do not apply to these fixed management endpoint names.
 
 ## How it works
 
-This is a Spring Boot auto-configuration library, not a Maven build plugin. A Maven or Gradle dependency places the JAR on the application's runtime classpath. Spring Boot discovers its auto-configuration, binds the two `swagger-ui-link` properties, waits until the web application is ready, then logs the resolved URI.
+This is a Spring Boot auto-configuration library, not a Maven build plugin. A Maven or Gradle dependency places the JAR on the application's runtime classpath. Spring Boot discovers its auto-configuration, binds the `swagger-ui-link` properties, waits until the web application is ready, then logs the enabled links.
 
 The artifact does not compile against springdoc classes. That keeps it usable with MVC, WebFlux, and other providers through `swagger-ui-link.url`, while the default inference follows springdoc's documented property conventions.
 

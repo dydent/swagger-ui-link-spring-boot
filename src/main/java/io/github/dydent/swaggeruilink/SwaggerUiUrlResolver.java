@@ -14,7 +14,7 @@ final class SwaggerUiUrlResolver {
 
     URI resolve(Environment environment, SwaggerUiLinkProperties properties) {
         if (StringUtils.hasText(properties.getUrl())) {
-            return explicitUrl(properties.getUrl());
+            return explicitUrl(properties.getUrl(), "swagger-ui-link.url");
         }
         if (environment.getProperty("springdoc.use-management-port", Boolean.class, false)) {
             return managementUrl(environment);
@@ -22,34 +22,39 @@ final class SwaggerUiUrlResolver {
         return applicationUrl(environment);
     }
 
-    private URI explicitUrl(String configuredUrl) {
+    URI resolveApiDocs(Environment environment, SwaggerUiLinkProperties properties) {
+        if (StringUtils.hasText(properties.getApiDocsUrl())) {
+            return explicitUrl(properties.getApiDocsUrl(), "swagger-ui-link.api-docs-url");
+        }
+        if (environment.getProperty("springdoc.use-management-port", Boolean.class, false)) {
+            return managementApiDocsUrl(environment);
+        }
+        return applicationApiDocsUrl(environment);
+    }
+
+    private URI explicitUrl(String configuredUrl, String property) {
         URI uri;
         try {
             uri = new URI(configuredUrl.trim());
         }
         catch (URISyntaxException exception) {
-            throw new IllegalArgumentException("swagger-ui-link.url must be an absolute HTTP(S) URL", exception);
+            throw new IllegalArgumentException(property + " must be an absolute HTTP(S) URL", exception);
         }
 
         String scheme = uri.getScheme();
         if (!uri.isAbsolute() || uri.getHost() == null || scheme == null
                 || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
-            throw new IllegalArgumentException("swagger-ui-link.url must be an absolute HTTP(S) URL");
+            throw new IllegalArgumentException(property + " must be an absolute HTTP(S) URL");
         }
         if (uri.getUserInfo() != null) {
-            throw new IllegalArgumentException("swagger-ui-link.url must not contain credentials");
+            throw new IllegalArgumentException(property + " must not contain credentials");
         }
         return uri;
     }
 
     private URI applicationUrl(Environment environment) {
         int port = requiredPort(environment, "local.server.port");
-        String basePath = environment.getProperty("spring.webflux.base-path");
-        if (!StringUtils.hasText(basePath)) {
-            basePath = path(
-                    environment.getProperty("server.servlet.context-path"),
-                    environment.getProperty("spring.mvc.servlet.path"));
-        }
+        String basePath = applicationBasePath(environment);
 
         boolean rootPath = environment.getProperty("springdoc.swagger-ui.use-root-path", Boolean.class, false);
         String swaggerPath = rootPath ? "/" : swaggerPath(environment);
@@ -57,18 +62,37 @@ final class SwaggerUiUrlResolver {
                 rootPath ? rootPath(basePath) : path(basePath, swaggerPath));
     }
 
+    private URI applicationApiDocsUrl(Environment environment) {
+        return localUri(
+                scheme(environment, "server.ssl.enabled", false),
+                requiredPort(environment, "local.server.port"),
+                path(applicationBasePath(environment), configuredPath(
+                        environment, "springdoc.api-docs.path", "/v3/api-docs")));
+    }
+
+    private String applicationBasePath(Environment environment) {
+        String basePath = environment.getProperty("spring.webflux.base-path");
+        return StringUtils.hasText(basePath) ? basePath : path(
+                environment.getProperty("server.servlet.context-path"),
+                environment.getProperty("spring.mvc.servlet.path"));
+    }
+
     private String swaggerPath(Environment environment) {
-        String path = environment.getProperty("springdoc.swagger-ui.path", "/swagger-ui.html");
+        return configuredPath(environment, "springdoc.swagger-ui.path", "/swagger-ui.html");
+    }
+
+    private String configuredPath(Environment environment, String property, String defaultValue) {
+        String configuredPath = environment.getProperty(property, defaultValue);
         try {
-            if (new URI(path).isAbsolute()) {
-                throw new IllegalArgumentException(
-                        "springdoc.swagger-ui.path must be a path; use swagger-ui-link.url for a complete URL");
+            if (new URI(configuredPath).isAbsolute()) {
+                throw new IllegalArgumentException(property + " must be a path; use a swagger-ui-link URL override"
+                        + " for a complete URL");
             }
         }
         catch (URISyntaxException exception) {
-            throw new IllegalArgumentException("springdoc.swagger-ui.path is not a valid path", exception);
+            throw new IllegalArgumentException(property + " is not a valid path", exception);
         }
-        return path;
+        return configuredPath;
     }
 
     private URI managementUrl(Environment environment) {
@@ -81,6 +105,18 @@ final class SwaggerUiUrlResolver {
                         environment.getProperty("management.server.base-path"),
                         environment.getProperty("management.endpoints.web.base-path", "/actuator"),
                         "/swagger-ui"));
+    }
+
+    private URI managementApiDocsUrl(Environment environment) {
+        int port = requiredPort(environment, "local.management.port");
+        boolean applicationSsl = environment.getProperty("server.ssl.enabled", Boolean.class, false);
+        return localUri(
+                scheme(environment, "management.server.ssl.enabled", applicationSsl),
+                port,
+                path(
+                        environment.getProperty("management.server.base-path"),
+                        environment.getProperty("management.endpoints.web.base-path", "/actuator"),
+                        "/openapi"));
     }
 
     private int requiredPort(Environment environment, String property) {

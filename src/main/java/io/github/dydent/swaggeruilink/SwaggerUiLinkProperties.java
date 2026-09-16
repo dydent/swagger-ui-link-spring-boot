@@ -13,7 +13,13 @@ public class SwaggerUiLinkProperties {
     /** Complete HTTP(S) URL to print instead of inferring a local URL. */
     private String url;
 
-    /** Creates properties with reporting disabled and no URL override. */
+    /** Whether to also print the OpenAPI JSON URL after startup. */
+    private boolean apiDocs;
+
+    /** Complete HTTP(S) OpenAPI JSON URL to print; setting it also enables this link. */
+    private String apiDocsUrl;
+
+    /** Creates properties with reporting disabled and no URL overrides. */
     public SwaggerUiLinkProperties() {
     }
 
@@ -35,5 +41,25 @@ public class SwaggerUiLinkProperties {
     /** Sets the complete HTTP(S) URL to print instead of inferring a local URL. */
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    /** Returns whether ready-time OpenAPI JSON URL reporting is enabled. */
+    public boolean isApiDocs() {
+        return apiDocs;
+    }
+
+    /** Sets whether to also print the OpenAPI JSON URL after startup. */
+    public void setApiDocs(boolean apiDocs) {
+        this.apiDocs = apiDocs;
+    }
+
+    /** Returns the complete OpenAPI JSON URL override, or {@code null} when it should be inferred. */
+    public String getApiDocsUrl() {
+        return apiDocsUrl;
+    }
+
+    /** Sets the complete HTTP(S) OpenAPI JSON URL to print and enables this link. */
+    public void setApiDocsUrl(String apiDocsUrl) {
+        this.apiDocsUrl = apiDocsUrl;
     }
 }

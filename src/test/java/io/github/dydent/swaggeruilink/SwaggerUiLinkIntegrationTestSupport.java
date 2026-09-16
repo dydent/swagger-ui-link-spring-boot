@@ -18,10 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 abstract class SwaggerUiLinkIntegrationTestSupport {
 
     private static final Pattern SWAGGER_UI_LOG = Pattern.compile("Swagger UI: (https?://\\S+)");
+    private static final Pattern OPENAPI_JSON_LOG = Pattern.compile("OpenAPI JSON: (https?://\\S+)");
 
     @Test
-    void printedUrlOpensSwaggerUi(CapturedOutput output) throws Exception {
+    void printedUrlsOpenDocumentation(CapturedOutput output) throws Exception {
         assertPrintedUrlOpens(output);
+        assertPrintedApiDocsUrlOpens(output);
     }
 
     static void assertPrintedUrlOpens(CapturedOutput output) throws Exception {
@@ -37,6 +39,20 @@ abstract class SwaggerUiLinkIntegrationTestSupport {
                         HttpResponse.BodyHandlers.discarding());
 
         assertThat(response.statusCode()).isBetween(200, 299);
+    }
+
+    static void assertPrintedApiDocsUrlOpens(CapturedOutput output) throws Exception {
+        Matcher matcher = OPENAPI_JSON_LOG.matcher(output.getOut());
+        assertThat(matcher.find()).as("startup log contains the OpenAPI JSON URL").isTrue();
+        assertThat(output.getOut()).containsOnlyOnce("OpenAPI JSON: http");
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create(matcher.group(1))).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isBetween(200, 299);
+        assertThat(response.headers().firstValue("Content-Type").orElse(""))
+                .contains("application/json");
     }
 
     @SpringBootConfiguration
