@@ -22,11 +22,13 @@ class SwaggerUiLinkManagementIntegrationTests {
         try (ConfigurableApplicationContext ignored = application.run(
                 "--server.port=0",
                 "--management.server.port=0",
-                "--management.endpoints.web.exposure.include=swagger-ui",
+                "--management.endpoints.web.exposure.include=swagger-ui,openapi",
                 "--springdoc.use-management-port=true",
                 "--swagger-ui-link.enabled=true",
+                "--swagger-ui-link.api-docs=true",
                 "--spring.main.banner-mode=off")) {
             SwaggerUiLinkIntegrationTestSupport.assertPrintedUrlOpens(output);
+            SwaggerUiLinkIntegrationTestSupport.assertPrintedApiDocsUrlOpens(output);
         }
     }
 }

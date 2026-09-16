@@ -4,7 +4,7 @@ Last updated: 2026-09-02
 
 ## 1. Decision summary
 
-Build one small, open-source Spring Boot starter JAR that prints a clickable Swagger UI URL after a web application is fully started.
+Build one small, open-source Spring Boot starter JAR that prints a clickable Swagger UI URL after a web application is fully started, with an optional OpenAPI JSON link.
 
 | Decision | Choice |
 | --- | --- |
@@ -22,7 +22,7 @@ The name describes the behavior, remains searchable, and follows Spring Boot sta
 
 ## 2. Problem and success criteria
 
-Developers should not have to remember or reconstruct the Swagger UI URL after starting a service. The library succeeds when adding one dependency and one local-only property causes exactly one INFO log entry containing an address that opens the application's existing UI.
+Developers should not have to remember or reconstruct documentation URLs after starting a service. The library succeeds when adding one dependency and one local-only property prints the existing UI link, with one additional opt-in property for the OpenAPI JSON link.
 
 The initial release must:
 
@@ -59,6 +59,19 @@ Expected log after successful startup:
 Swagger UI: http://localhost:8080/swagger-ui.html
 ```
 
+Optional OpenAPI JSON reporting:
+
+```yaml
+swagger-ui-link:
+  enabled: true
+  api-docs: true
+```
+
+```text
+Swagger UI: http://localhost:8080/swagger-ui.html
+OpenAPI JSON: http://localhost:8080/v3/api-docs
+```
+
 Resolution order:
 
 1. If `swagger-ui-link.url` is set, validate and print it.
@@ -69,6 +82,8 @@ Resolution order:
 6. Normalize duplicate and missing slashes and build the final value with `java.net.URI`.
 
 Invalid configuration produces a WARN message. It does not throw out of the ready-event listener. Explicit URLs only allow HTTP(S), require a host, and reject user information to avoid logging credentials.
+
+OpenAPI JSON reporting is disabled by default. `swagger-ui-link.api-docs=true` infers the link from `springdoc.api-docs.path`, or from the fixed `/openapi` actuator endpoint in management-port mode. `swagger-ui-link.api-docs-url` supplies an explicit URL and implicitly opts in. UI and JSON resolution failures are handled independently.
 
 ## 5. Architecture
 
@@ -84,7 +99,7 @@ SwaggerUiLinkReporter -- ApplicationReadyEvent --> INFO log
 SwaggerUiUrlResolver -- Environment + properties --> URI
 ```
 
-- `SwaggerUiLinkProperties` exposes only `enabled` and `url`.
+- `SwaggerUiLinkProperties` exposes `enabled`, `url`, `api-docs`, and `api-docs-url`.
 - `SwaggerUiLinkAutoConfiguration` activates only for web applications with the enable property.
 - `SwaggerUiLinkReporter` owns lifecycle timing and non-fatal logging.
 - `SwaggerUiUrlResolver` owns deterministic path and URL logic.
@@ -118,10 +133,10 @@ The test matrix is:
 
 Tests are split by cost:
 
-- Resolver unit tests cover ports, HTTPS, servlet paths, reactive paths, root-path mode, management paths, explicit URLs, invalid URLs, and missing ports.
-- Auto-configuration tests cover disabled-by-default behavior, opt-in registration, ready-event output, and disabled springdoc UI behavior.
-- Integration tests start real MVC or WebFlux servers on random ports, extract the logged link, follow its redirect, and require a successful Swagger UI HTTP response.
-- A management integration test starts separate application and management ports and requests the printed management URL.
+- Resolver unit tests cover both link types across ports, HTTPS, servlet paths, reactive paths, management paths, explicit URLs, invalid URLs, and missing ports.
+- Auto-configuration tests cover disabled-by-default behavior, independent opt-ins, ready-event output, overrides, and disabled springdoc endpoints.
+- Integration tests start real MVC or WebFlux servers on random ports and require successful Swagger UI and OpenAPI JSON responses.
+- A management integration test starts separate application and management ports and requests both printed management URLs.
 
 GitHub Actions runs all four combinations on Java 17. Local development may use a newer JDK, but the compiler emits Java 17 bytecode.
 

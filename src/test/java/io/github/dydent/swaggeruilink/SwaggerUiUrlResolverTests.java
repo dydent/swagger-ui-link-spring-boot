@@ -21,6 +21,36 @@ class SwaggerUiUrlResolverTests {
     }
 
     @Test
+    void resolvesDefaultApiDocsUrlFromRuntimePort() {
+        URI result = resolveApiDocsWith("local.server.port", "8080");
+
+        assertThat(result).hasToString("http://localhost:8080/v3/api-docs");
+    }
+
+    @Test
+    void combinesHttpsAndServletPathsForApiDocs() {
+        URI result = resolveApiDocsWith(
+                "local.server.port", "8443",
+                "server.ssl.enabled", "true",
+                "server.servlet.context-path", "/api/",
+                "spring.mvc.servlet.path", "/services/",
+                "springdoc.api-docs.path", "/openapi");
+
+        assertThat(result).hasToString("https://localhost:8443/api/services/openapi");
+    }
+
+    @Test
+    void usesWebFluxBasePathForApiDocs() {
+        URI result = resolveApiDocsWith(
+                "local.server.port", "8081",
+                "server.servlet.context-path", "/ignored",
+                "spring.webflux.base-path", "/reactive",
+                "springdoc.api-docs.path", "openapi");
+
+        assertThat(result).hasToString("http://localhost:8081/reactive/openapi");
+    }
+
+    @Test
     void combinesHttpsAndServletPaths() {
         URI result = resolveWith(
                 "local.server.port", "8443",
@@ -65,6 +95,18 @@ class SwaggerUiUrlResolverTests {
     }
 
     @Test
+    void resolvesManagementPortApiDocsUrl() {
+        URI result = resolveApiDocsWith(
+                "springdoc.use-management-port", "true",
+                "local.management.port", "9090",
+                "management.server.base-path", "/management",
+                "management.endpoints.web.base-path", "/manage",
+                "springdoc.api-docs.path", "/ignored");
+
+        assertThat(result).hasToString("http://localhost:9090/management/manage/openapi");
+    }
+
+    @Test
     void explicitUrlWins() {
         SwaggerUiLinkProperties properties = new SwaggerUiLinkProperties();
         properties.setUrl("https://api.example.test/docs?group=public#top");
@@ -81,6 +123,26 @@ class SwaggerUiUrlResolverTests {
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> resolver.resolve(new MockEnvironment(), properties))
+                .withMessageContaining("credentials");
+    }
+
+    @Test
+    void explicitApiDocsUrlWins() {
+        SwaggerUiLinkProperties properties = new SwaggerUiLinkProperties();
+        properties.setApiDocsUrl("https://api.example.test/openapi.json");
+
+        assertThat(resolver.resolveApiDocs(new MockEnvironment(), properties))
+                .hasToString("https://api.example.test/openapi.json");
+    }
+
+    @Test
+    void rejectsUnsafeExplicitApiDocsUrl() {
+        SwaggerUiLinkProperties properties = new SwaggerUiLinkProperties();
+        properties.setApiDocsUrl("https://user:secret@example.test/openapi.json");
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> resolver.resolveApiDocs(new MockEnvironment(), properties))
+                .withMessageContaining("swagger-ui-link.api-docs-url")
                 .withMessageContaining("credentials");
     }
 
@@ -111,11 +173,37 @@ class SwaggerUiUrlResolverTests {
                 .withMessageContaining("path");
     }
 
+    @Test
+    void rejectsAbsoluteSpringdocApiDocsPath() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> resolveApiDocsWith(
+                        "local.server.port", "8080",
+                        "springdoc.api-docs.path", "https://example.test/openapi.json"))
+                .withMessageContaining("springdoc.api-docs.path")
+                .withMessageContaining("path");
+    }
+
+    @Test
+    void requiresRuntimePortForApiDocs() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> resolver.resolveApiDocs(
+                        new MockEnvironment(), new SwaggerUiLinkProperties()))
+                .withMessageContaining("local.server.port");
+    }
+
     private URI resolveWith(String... properties) {
         MockEnvironment environment = new MockEnvironment();
         for (int index = 0; index < properties.length; index += 2) {
             environment.setProperty(properties[index], properties[index + 1]);
         }
         return resolver.resolve(environment, new SwaggerUiLinkProperties());
+    }
+
+    private URI resolveApiDocsWith(String... properties) {
+        MockEnvironment environment = new MockEnvironment();
+        for (int index = 0; index < properties.length; index += 2) {
+            environment.setProperty(properties[index], properties[index + 1]);
+        }
+        return resolver.resolveApiDocs(environment, new SwaggerUiLinkProperties());
     }
 }
