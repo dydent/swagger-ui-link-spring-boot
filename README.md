@@ -16,7 +16,7 @@ This is inspiration from that developer experience, not a claim that Express its
 
 ## Status
 
-Version `0.1.0` targets:
+Version `0.2.0` targets:
 
 - Java 17 or newer
 - Spring Boot 3.5.x with springdoc-openapi 2.9.x
@@ -36,14 +36,14 @@ Maven:
 <dependency>
     <groupId>io.github.dydent</groupId>
     <artifactId>swagger-ui-link-spring-boot-starter</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:0.1.0'
+implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:0.2.0'
 ```
 
 ## Enable
