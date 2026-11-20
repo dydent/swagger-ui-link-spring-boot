@@ -1,5 +1,7 @@
 # Swagger UI Link Spring Boot Starter
 
+**1.0.0 — first stable release.** Upgrading from `0.2.0` only requires changing the dependency version. Configuration and defaults are unchanged.
+
 Print the Swagger UI URL when a Spring Boot application is ready:
 
 ```text
@@ -14,9 +16,9 @@ I came to Spring Boot after working with TypeScript, Node, and Express applicati
 
 This is inspiration from that developer experience, not a claim that Express itself universally prints a Swagger UI link.
 
-## Status
+## Compatibility
 
-Version `0.2.0` targets:
+Version `1.0.0` targets:
 
 - Java 17 or newer
 - Spring Boot 3.5.x with springdoc-openapi 2.9.x
@@ -36,14 +38,14 @@ Maven:
 <dependency>
     <groupId>io.github.dydent</groupId>
     <artifactId>swagger-ui-link-spring-boot-starter</artifactId>
-    <version>0.2.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:0.2.0'
+implementation 'io.github.dydent:swagger-ui-link-spring-boot-starter:1.0.0'
 ```
 
 ## Enable
