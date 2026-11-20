@@ -32,6 +32,14 @@ jobs:
             profile: webflux
             boot: 4.1.1
             springdoc: 3.1.0
+          - name: Boot 4.2 / MVC
+            profile: mvc
+            boot: 4.2.0
+            springdoc: 3.2.0
+          - name: Boot 4.2 / WebFlux
+            profile: webflux
+            boot: 4.2.0
+            springdoc: 3.2.0
     name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v5
