@@ -23,10 +23,11 @@ Version `1.0.0` targets:
 - Java 17 or newer
 - Spring Boot 3.5.x with springdoc-openapi 2.9.x
 - Spring Boot 4.1.x with springdoc-openapi 3.1.x
+- Spring Boot 4.2.x with springdoc-openapi 3.2.x
 - Spring MVC and Spring WebFlux
 - A separate springdoc management port
 
-All four framework combinations are exercised by integration tests that start a real server, capture the printed URL, and request it over HTTP.
+All six framework combinations are exercised by integration tests that start a real server, capture the printed URL, and request it over HTTP.
 
 ## Install
 
@@ -192,6 +193,8 @@ mvn clean verify
 mvn -Pwebflux clean verify
 mvn -Dspring-boot.version=4.1.1 -Dspringdoc.version=3.1.0 clean verify
 mvn -Pwebflux -Dspring-boot.version=4.1.1 -Dspringdoc.version=3.1.0 clean verify
+mvn -Dspring-boot.version=4.2.0 -Dspringdoc.version=3.2.0 clean verify
+mvn -Pwebflux -Dspring-boot.version=4.2.0 -Dspringdoc.version=3.2.0 clean verify
 ```
 
 See [the project plan](docs/PROJECT_PLAN.md) for the architecture decisions, release roadmap, and Maven Central checklist.

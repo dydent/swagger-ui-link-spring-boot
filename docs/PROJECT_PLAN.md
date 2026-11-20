@@ -130,6 +130,7 @@ The test matrix is:
 | --- | --- | --- | --- |
 | 3.5.16 | 2.9.0 | Required | Required |
 | 4.1.1 | 3.1.0 | Required | Required |
+| 4.2.0 | 3.2.0 | Required | Required |
 
 Tests are split by cost:
 
@@ -138,7 +139,7 @@ Tests are split by cost:
 - Integration tests start real MVC or WebFlux servers on random ports and require successful Swagger UI and OpenAPI JSON responses.
 - A management integration test starts separate application and management ports and requests both printed management URLs.
 
-GitHub Actions runs all four combinations on Java 17. Local development may use a newer JDK, but the compiler emits Java 17 bytecode.
+GitHub Actions runs every combination on Java 17. Local development may use a newer JDK, but the compiler emits Java 17 bytecode.
 
 ## 8. Open-source repository plan
 
@@ -182,7 +183,7 @@ The POM already contains the required coordinates, project name, description, pr
 
 1. Update the README installation examples, compatibility notes, and security support policy for the release.
 2. Set the POM version to the release number and commit it with the documentation changes.
-3. Run all four matrix commands from the README.
+3. Run the complete compatibility matrix from the README.
 4. Run `mvn -Prelease,mvc -Dgpg.skip=true clean verify` and inspect the main, source, and Javadoc JARs.
 5. After CI passes and the changes are merged, create and push a signed tag on the release commit using `v` followed by the exact POM version.
 6. The release workflow verifies the matrix, checks that the tag matches the POM, signs the artifacts, and runs `mvn deploy`.
@@ -243,7 +244,7 @@ No dashboard, browser launcher, plugin SPI, or multi-module split is planned wit
 
 `0.1.0` is ready when:
 
-- all four CI matrix jobs pass;
+- all CI matrix jobs pass;
 - the JAR contains auto-configuration imports and generated property metadata;
 - the runtime dependency tree contains neither springdoc nor a web server;
 - the class files target Java 17;
