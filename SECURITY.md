@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Until the first stable release, security fixes are made on `main`. After release, only the latest published minor line is supported.
+Only the latest published minor line receives security fixes. For `1.0.0`, that line is `1.0.x`.
 
 ## Reporting a vulnerability
 

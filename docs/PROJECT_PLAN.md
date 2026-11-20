@@ -178,20 +178,20 @@ Do not commit Central tokens, signing keys, passphrases, or a populated Maven `s
 
 The POM already contains the required coordinates, project name, description, project URL, Apache license, developer, and SCM metadata. The `release` Maven profile attaches source and Javadoc JARs, signs release files, and uploads with Sonatype's Central Publishing Maven Plugin. `autoPublish=false` deliberately leaves the final release click to a maintainer after Portal validation.
 
-### First release checklist
+### Stable release checklist
 
-1. Finish the public README and validate every link.
-2. Change the POM version from `0.1.0-SNAPSHOT` to `0.1.0` and commit it.
+1. Update the README installation examples, compatibility notes, and security support policy for the release.
+2. Set the POM version to the release number and commit it with the documentation changes.
 3. Run all four matrix commands from the README.
 4. Run `mvn -Prelease,mvc -Dgpg.skip=true clean verify` and inspect the main, source, and Javadoc JARs.
-5. Create and push the signed tag `v0.1.0`.
+5. After CI passes and the changes are merged, create and push a signed tag on the release commit using `v` followed by the exact POM version.
 6. The release workflow verifies the matrix, checks that the tag matches the POM, signs the artifacts, and runs `mvn deploy`.
 7. In Central Publisher Portal, inspect the validated deployment and press Publish.
-8. Wait for synchronization, then confirm the coordinates on [Maven Central](https://central.sonatype.com/).
-9. Create GitHub Release `v0.1.0` with short installation and compatibility notes.
-10. Return the POM on `main` to the next `-SNAPSHOT` version, for example `0.1.1-SNAPSHOT`.
+8. After synchronization, install the published coordinates from Maven Central in a separate Spring Boot app with a fresh Maven cache. Enable the starter and open the printed Swagger UI link.
+9. Publish the GitHub Release for the tag as **Latest**, with **Pre-release** unchecked. Include Maven Central and quick-start links, tested compatibility, and upgrade instructions.
+10. Return only the POM on `main` to the next patch `-SNAPSHOT`; keep public install examples on the published release.
 
-Central releases are immutable. If `0.1.0` contains a bug after publication, release `0.1.1`; never attempt to replace `0.1.0`.
+Central releases are immutable. Publish a new patch version for corrections.
 
 ## 11. Delivery phases
 
